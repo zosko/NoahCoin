@@ -35,7 +35,14 @@ app.get('/transactions', (req, res) => {
 app.post('/transact', (req, res) => { // make transaction
 	const { recipient, amount } = req.body;
 	const transaction = wallet.createTransaction(recipient, amount, tp);
+
+	p2pServer.broadcastTransaction(transaction);
+
 	res.redirect('/transactions');
+})
+
+app.get('/public-key', (req, res) => {
+	res.json({ publicKey: wallet.publicKey });
 })
 
 app.listen(HTTP_PORT, () => {
