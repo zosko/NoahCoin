@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Noah Coin</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  </head>
+  <body>
+    <button id="mine-transaction">Mine Transaction</button>
+    <hr />
+    Address: <input type="text" id="address" /><br />
+    Amount: <input type="text" id="amount" /><br />
+    <button id="make-transaction">Make Transaction</button>
+    <hr />
+    <div id="peers"></div>
+    <hr />
+    <div id="wallet-info"></div>
+    <hr />
+    <div id="blocks-length"></div>
+    <hr />
+    <div id="transactions"></div>
+    <hr />
+    <div id="blocks"></div>
+    <hr />
+    <script>
+
+      function getBlocks() {
+        $.get("/blocks", function(blocks, status) {
+
+          var blockHtml = "<h1>BLOCKS</h1> <br />";
+          blocks.forEach(block => { 
+            blockHtml += "<b>BLOCK</b><br />";
+            blockHtml += "&nbsp;&nbsp;&nbsp;<b>timestamp:</b> " + block.timestamp + "<br />";
+            blockHtml += "&nbsp;&nbsp;&nbsp;<b>last hash:</b> " + block.lastHash + "<br />";
+            blockHtml += "&nbsp;&nbsp;&nbsp;<b>difficulty:</b> " + block.difficulty + "<br />";
+            blockHtml += "&nbsp;&nbsp;&nbsp;<b>hash:</b> " + block.hash + "<br />";
+            blockHtml += "&nbsp;&nbsp;&nbsp;<b>nonce:</b> " + block.nonce + "<br />";
+
+            var dataHtml = "";
+            block.data.forEach(data => { 
+              dataHtml += "<b>INPUT</b><br />";
+              dataHtml += "&nbsp;&nbsp;&nbsp;<b>address:</b> " + data.input.address + "<br />";
+              dataHtml += "&nbsp;&nbsp;&nbsp;<b>amount:</b> " + data.input.amount + "<br />";
+              dataHtml += "&nbsp;&nbsp;&nbsp;<b>timestamp:</b> " + data.input.timestamp + "<br />";
+
+              var outputHtml = "<b>OUTPUTS</b><br />";
+              data.outputs.forEach(output => { 
+                outputHtml += "&nbsp;&nbsp;&nbsp;<b>address:</b> " + output.address + "<br />";
+                outputHtml += "&nbsp;&nbsp;&nbsp;<b>amount:</b> " + output.amount + "<br />";
+              });
+              
+              dataHtml += outputHtml;
+            });
+
+            blockHtml += dataHtml + "<br />---------------------<br />";
+          });
+
+          $('#blocks').html(blockHtml);
+        });
+      }
+      function getBlocksLength() {
+        $.get("/blocks/length", function(data, status) {
+          $('#blocks-length').html("Block length: " + data);
+        });
+      }
+
+      function getPeers() {
+        $.get("/peers", function(data, status) {
+          $('#peers').html("Peers: " + data.peers);
+        });
+      }
+
+      function getBlockPerPage(page) {
+        $.get("/blocks/"+page, function(data, status) {
+          
+            var blockHtml = "<h1>BLOCKS</h1> <br />";
+            blocks.forEach(block => { 
+              blockHtml += "<b>BLOCK</b><br />";
+              blockHtml += "&nbsp;&nbsp;&nbsp;<b>timestamp:</b> " + block.timestamp + "<br />";
+              blockHtml += "&nbsp;&nbsp;&nbsp;<b>last hash:</b> " + block.lastHash + "<br />";
+              blockHtml += "&nbsp;&nbsp;&nbsp;<b>difficulty:</b> " + block.difficulty + "<br />";
+              blockHtml += "&nbsp;&nbsp;&nbsp;<b>hash:</b> " + block.hash + "<br />";
+              blockHtml += "&nbsp;&nbsp;&nbsp;<b>nonce:</b> " + block.nonce + "<br />";
+
+              var dataHtml = "";
+              block.data.forEach(data => { 
+                dataHtml += "<b>INPUT</b><br />";
+                dataHtml += "&nbsp;&nbsp;&nbsp;<b>address:</b> " + data.input.address + "<br />";
+                dataHtml += "&nbsp;&nbsp;&nbsp;<b>amount:</b> " + data.input.amount + "<br />";
+                dataHtml += "&nbsp;&nbsp;&nbsp;<b>timestamp:</b> " + data.input.timestamp + "<br />";
+
+                var outputHtml = "<b>OUTPUTS</b><br />";
+                data.outputs.forEach(output => { 
+                  outputHtml += "&nbsp;&nbsp;&nbsp;<b>address:</b> " + output.address + "<br />";
+                  outputHtml += "&nbsp;&nbsp;&nbsp;<b>amount:</b> " + output.amount + "<br />";
+                });
+                
+                dataHtml += outputHtml;
+              });
+
+              blockHtml += dataHtml + "<br />---------------------<br />";
+            });
+
+            $('#blocks').html(blockHtml);
+
+        });
+      }
+
+      function mine(data) {
+        $.post("/mine", { data: data }, function(result) {
+
+        });
+      }
+
+      function getTransactions() {
+        $.get("/transactions", function(transactions, status) {
+
+          var transactionsHtml = "<h1>TRANSACTIONS</h1> <br />";
+            transactions.forEach(transaction => { 
+              transactionsHtml += "&nbsp;&nbsp;&nbsp;<b>id:</b> " + transaction.id + "<br />";
+              
+              transactionsHtml += "<b>INPUT</b><br />";
+              transactionsHtml += "&nbsp;&nbsp;&nbsp;<b>address:</b> " + transaction.input.address + "<br />";
+              transactionsHtml += "&nbsp;&nbsp;&nbsp;<b>amount:</b> " + transaction.input.amount + "<br />";
+              transactionsHtml += "&nbsp;&nbsp;&nbsp;<b>timestamp:</b> " + transaction.input.timestamp + "<br />";
+
+              var outputHtml = "<b>OUTPUTS</b><br />";
+              transaction.outputs.forEach(output => { 
+                  outputHtml += "&nbsp;&nbsp;&nbsp;<b>address:</b> " + output.address + "<br />";
+                  outputHtml += "&nbsp;&nbsp;&nbsp;<b>amount:</b> " + output.amount + "<br />";
+              });
+              transactionsHtml += outputHtml + "<br />---------------------<br />";
+            });
+
+          $('#transactions').html(transactionsHtml);
+        });
+      }
+
+      function transact(recipient, amount) {
+        $.post("/transact", { recipient: recipient, amount: amount }, function(result) {
+          console.log("/transact");
+          console.log(result);
+        });
+      }
+
+      function getWalletInfo() {
+        $.get("/wallet-info", function(data, status) {
+          $('#wallet-info').html("WALLET <br />Address: " + data.address + "<br /> Balance: " + data.balance);
+        });
+      }
+
+      function mineTransactions() {
+        $.get("/mine-transactions", function(data, status) {
+
+        });
+      }
+
+      $(document).ready(function() {
+        getPeers();
+        getBlocks();
+        getTransactions();
+        getWalletInfo();
+        getBlocksLength();
+
+        $("#mine-transaction").on("click", function(){
+          mineTransactions();
+        });
+
+        $("#make-transaction").on("click", function(){
+          var address = $("#address").val();
+          var amount = $("#amount").val();
+          transact(address, amount);
+        });
+      });
+    </script>
+  </body>
+</html>

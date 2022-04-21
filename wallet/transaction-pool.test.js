@@ -26,6 +26,10 @@ describe('TransactionPool', () => {
 		expect(JSON.stringify(tp.transactions.find(t => t.id === newTransaction.id))).not.toEqual(oldTransaction);
 	});
 
+	it('confirms that a transaction by a wallet exists', () => {
+    	expect(tp.existingTransaction(wallet.publicKey)).toEqual(transaction);
+  	});
+
 	it('clear transactions',() => {
 		tp.clear();
 		expect(tp.transactions).toEqual([]);

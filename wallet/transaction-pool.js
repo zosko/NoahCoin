@@ -1,3 +1,4 @@
+// store the unconfirmed transactions
 const Transaction = require('../wallet/transaction');
 
 class TransactionPool {
@@ -6,6 +7,7 @@ class TransactionPool {
 	}
 
 	updateOrAddTransaction(transaction) {
+		// if a transaction at the transaction index exists, replace it. Otherwise, push it
 		let transactionWithId = this.transactions.find(t => t.id === transaction.id);
 
 		if (transactionWithId) {
@@ -15,13 +17,16 @@ class TransactionPool {
 		}
 	}
 
+	// check if a transaction has already been performed by this address
 	existingTransaction(address) {
-		return this.transactions.find(t => t.input.address === address);
+		return this.transactions.find(transaction => transaction.input.address === address);
 	}
 
 	validTransactions() {
+		// make sure the input amount of each transaction is equal to the output amounts
+		
 		return this.transactions.filter(transaction => {
-			const outputTotal = transaction.outputs.reduce( (total, output) => {
+			const outputTotal = transaction.outputs.reduce((total, output) => {
 				return total + output.amount;
 			}, 0);
 

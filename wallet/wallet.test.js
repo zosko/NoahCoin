@@ -40,7 +40,7 @@ describe('Wallet', () => {
 	});
 
 	describe('calculating a balance', () => {
-		let addBalance, repeatAdd, senderWallet;
+		let addBalance, repeatAdd, blockData, senderWallet;
 
 		beforeEach( () => {
 			senderWallet = new Wallet();

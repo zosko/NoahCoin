@@ -3,85 +3,82 @@ const Wallet = require('./wallet');
 const { MINING_REWARD } = require('../config');
 
 describe('Transaction', () => {
-	
-	let transaction, wallet, receipient, amount;
+  let transaction, wallet, amount, recipient;
 
-	beforeEach( () => {
-		wallet = new Wallet();
-		amount = 50;
-		receipient = 'recepient_111';
+  beforeEach(() => {
+    wallet = new Wallet();
+  });
 
-		transaction = Transaction.newTransaction(wallet, receipient, amount);
-	});
+  describe('creating a normal transaction', () => {
+    beforeEach(() => {
+      amount = 50;
+      recipient = 'r3c1p13nt';
+      transaction = Transaction.newTransaction(wallet, recipient, amount);
+    });
 
-	it('outputs the `amount` subtracted from wallet balance', () => {
-		let tmpAmout = transaction.outputs.find(output => output.address === wallet.publicKey).amount;
+    it('ouputs the `amount` subtracted from the wallet balance', () => {
+      expect(transaction.outputs.find(output => output.address === wallet.publicKey).amount)
+        .toEqual(wallet.balance - amount);
+    });
 
-		expect(tmpAmout).toEqual(wallet.balance - amount);
-	});
+    it('outputs the `amount` added to the recipient', () => {
+      expect(transaction.outputs.find(output => output.address === recipient).amount)
+        .toEqual(amount);
+    });
 
-	it('outputs the `amount` added to the receipient', () => {
-		let tmpAmout = transaction.outputs.find(output => output.address === receipient).amount;
+    it('inputs the balance of the wallet', () => {
+      expect(transaction.input.amount).toEqual(wallet.balance);
+    });
 
-		expect(tmpAmout).toEqual(amount);
-	});
+    it('validates a valid transaction', () => {
+      expect(Transaction.verifyTransaction(transaction)).toBe(true);
+    });
 
-	it('inputs the balance of the wallet', () => {
-		expect(transaction.input.amount).toEqual(wallet.balance);
-	});
+    it('invalidates a corrupt transaction', () => {
+      transaction.outputs[0].amount = 50000;
+      expect(Transaction.verifyTransaction(transaction)).toBe(false);
+    });
 
-	it('validates a valid transaction', () => {
-		expect(Transaction.verifyTransaction(transaction)).toBe(true);
-	});
+    describe('and updating the transaction', () => {
+      let nextAmount, nextRecipient;
 
-	it('invalidates a currupt transaction', () => {
-		transaction.outputs[0].amount = 50000;
-		expect(Transaction.verifyTransaction(transaction)).toBe(false);
-	});
+      beforeEach(() => {
+        nextAmount = 20;
+        nextRecipient = 'n3xt-4ddr355';
+        transaction = transaction.update(wallet, nextRecipient, nextAmount);
+      });
 
-	describe('transaction with amount that exceed the balance', () => {
-		beforeEach( () => {
-			amount = 5000;
-			transaction = Transaction.newTransaction(wallet, receipient, amount);
-		});
+      it('outputs an increased amount subtracted from the sender', () => {
+        expect(transaction.outputs.find(output => output.address === wallet.publicKey).amount)
+          .toEqual(wallet.balance - amount - nextAmount);
+      });
 
-		it('does not create the transaction', () => {
-			expect(transaction).toEqual(undefined);
-		})
-	});
+      it('outputs an amount for the next recipient', () => {
+        expect(transaction.outputs.find(output => output.address === nextRecipient).amount)
+          .toEqual(nextAmount);
+      });
+    });
+  });
 
-	describe('and updating a transaction', () => {
+  describe('transacting with an amount that exceeds the balance', () => {
+    beforeEach(() => {
+      amount = 50000;
+      transaction = Transaction.newTransaction(wallet, recipient, amount);
+    });
 
-		let nextAmount, nextRecepient;
+    it('does not create the transaction', () => {
+      expect(transaction).toEqual(undefined);
+    });
+  });
 
-		beforeEach( () => {
-			nextAmount = 20;
-			nextRecepient = 'recepient_222';
-			transaction = transaction.update(wallet, nextRecepient, nextAmount);
-		});
+  describe('creating a reward transaction', () => {
+    beforeEach(() => {
+      transaction = Transaction.rewardTransaction(wallet, Wallet.blockchainWallet());
+    });
 
-		it('subtracts the next amount from the senders outputs', () => {
-			let tmpAddress = transaction.outputs.find(output => output.address === wallet.publicKey);
-
-			expect(tmpAddress.amount).toEqual(wallet.balance - amount - nextAmount);
-		})
-
-
-		it('outputs an amount for the next recepient', () => {
-			let tmpAddress = transaction.outputs.find(output => output.address === nextRecepient);
-
-			expect(tmpAddress.amount).toEqual(nextAmount);
-		})
-	});
-
-	describe('creating a reward transaction', () => {
-		beforeEach( () => {
-			transaction = Transaction.rewardTransaction(wallet, Wallet.blockchainWallet());
-		});
-
-		it('Reward the miner`s wallet', () => {
-			expect(transaction.outputs.find(output => output.address === wallet.publicKey).amount).toEqual(MINING_REWARD);
-		});
-
-	});
+    it(`rewards the miner's wallet`, () => {
+      expect(transaction.outputs.find(output => output.address === wallet.publicKey).amount)
+        .toEqual(MINING_REWARD);
+    });
+  });
 });
