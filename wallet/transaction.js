@@ -30,8 +30,7 @@ class Transaction {
 
 	static transactionWithOutputs(senderWallet, outputs) {
 		const transaction = new this();
-		//transaction.outputs.push.apply(transaction.outputs, outputs); //append in array
-		transaction.outputs.push(...outputs);
+		transaction.outputs = [...outputs];
 		Transaction.signTransaction(transaction, senderWallet);
 		return transaction;
 	}
