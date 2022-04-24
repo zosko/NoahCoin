@@ -1,5 +1,5 @@
 const ChainUtil = require('../chain-util');
-const { MINING_REWARD } = require('../config');
+const MINING_REWARD = require('../config').MINING_REWARD;
 
 class Transaction {
 	constructor() {
@@ -8,9 +8,7 @@ class Transaction {
 		this.outputs = [];
 	}
 
-	// unique to this implementation:
-	update(senderWallet, receipient, amount) {
-		// update the sender's output amount based off the new receiving output
+	update(senderWallet, recipient, amount) {
 		const senderOutput = this.outputs.find(output => output.address === senderWallet.publicKey);
 
 		if (amount > senderOutput.amount) {
@@ -19,10 +17,7 @@ class Transaction {
 		}
 
 		senderOutput.amount = senderOutput.amount - amount;
-
-		this.outputs.push( { amount: amount, address: receipient });
-
-		// resign the updated transaction, will only work from the original sender
+		this.outputs.push( { amount: amount, address: recipient });
 		Transaction.signTransaction(this, senderWallet);
 
 		return this;
@@ -30,26 +25,22 @@ class Transaction {
 
 	static transactionWithOutputs(senderWallet, outputs) {
 		const transaction = new this();
-		transaction.outputs = [...outputs];
+		transaction.outputs.push(...outputs);
 		Transaction.signTransaction(transaction, senderWallet);
 		return transaction;
 	}
 
-	// sender is an entire wallet class
-	// recipient is the public key of the recipient
-	static newTransaction(senderWallet, receipient, amount) {
+	static newTransaction(senderWallet, recipient, amount) {
 		if (amount > senderWallet.balance) {
 			console.log(`Amount: ${amount} exceeds balance.`);
 			return;
 		}
 
-		// subtract the balance from the sender
     	const senderAmount = senderWallet.balance - amount;
 
-    	// TODO: add transaction fee
 		return Transaction.transactionWithOutputs(senderWallet, [
 			{ amount: senderAmount, address: senderWallet.publicKey },
-			{ amount: amount, address: receipient }
+			{ amount: amount, address: recipient }
 		]);
 	}
 
@@ -69,12 +60,11 @@ class Transaction {
 	}
 
 	static verifyTransaction(transaction) {
-		const verifed = ChainUtil.verifySignature(
+		return ChainUtil.verifySignature(
 			transaction.input.address,
 			transaction.input.signature,
 			ChainUtil.hash(transaction.outputs)
 		);
-		return verifed;
 	}
 }
 
