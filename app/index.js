@@ -57,7 +57,6 @@ app.post('/transact', (req, res) => { // make transaction
 	
 	const transaction = wallet.createTransaction(recipient, amount, bc, tp);
 
-	// store transactions on the block itself.
 	p2pServer.broadcastTransaction(transaction);
 
 	res.json({ transaction: transaction });
@@ -77,7 +76,6 @@ app.get('/wallet-info', (req, res) => {
 app.get('/mine-transactions', (req, res) => {
 	const block = miner.mine();
 	console.log(`New block added: ${block.toString()}`);
-
 	res.redirect('/blocks');
 });
 
