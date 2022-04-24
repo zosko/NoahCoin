@@ -23,7 +23,7 @@ class Block {
 	}
 
 	static genesis() {
-		return new this('Genesis time', '-----', 'n0ax-h45x',[], 0, DIFFICULTY);
+		return new this(0, '-----', 'n0ax-h45x',[], 0, DIFFICULTY);
 	}
 
 	static mineBlock(lastBlock, data) {
